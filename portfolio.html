@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aanya Mehrotra — Data Analyst</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050508;
+    --surface: #0d0d14;
+    --surface2: #13131e;
+    --gold: #c9a96e;
+    --gold2: #e8d5a3;
+    --silver: #8a9bb5;
+    --text: #e8e4dd;
+    --muted: #5a6070;
+    --accent: #4f7cff;
+    --accent2: #7c5fff;
+    --border: rgba(201,169,110,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  .mono { font-family: 'DM Mono', monospace; }
+  .serif { font-family: 'Cormorant Garamond', serif; }
+
+  /* Custom cursor */
+  #cursor {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, width 0.3s, height 0.3s, opacity 0.3s;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,169,110,0.5);
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: transform 0.15s ease, width 0.3s, height 0.3s;
+  }
+  body:hover #cursor { opacity:1; }
+
+  /* Noise overlay */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none;
+    z-index:9990;
+    opacity:0.4;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius:2px; }
+
+  /* Loader */
+  #loader {
+    position: fixed; inset:0;
+    background: var(--bg);
+    z-index: 9997;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  #loader.hidden { opacity:0; visibility:hidden; }
+  .loader-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    animation: fadeUp 0.8s ease forwards;
+  }
+  .loader-bar {
+    width: 160px; height: 1px;
+    background: var(--muted);
+    position: relative;
+    overflow: hidden;
+  }
+  .loader-bar::after {
+    content:'';
+    position: absolute;
+    left: -100%; top:0;
+    width: 100%; height: 100%;
+    background: var(--gold);
+    animation: loadBar 1.8s ease forwards 0.3s;
+  }
+  @keyframes loadBar {
+    to { left: 0; }
+  }
+
+  /* Navbar */
+  nav {
+    position: fixed; top:0; left:0; right:0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 60px;
+    transition: all 0.4s ease;
+    mix-blend-mode: normal;
+  }
+  nav.scrolled {
+    background: rgba(5,5,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 60px;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+  }
+  .nav-links { display: flex; gap: 40px; }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    color: var(--silver);
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content:'';
+    position: absolute;
+    bottom: -4px; left:0;
+    width:0; height:1px;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width:100%; }
+
+  /* Hero */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 0 60px;
+  }
+  .hero-bg {
+    position: absolute; inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 50%, rgba(79,124,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 30%, rgba(124,95,255,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 80%, rgba(201,169,110,0.04) 0%, transparent 60%);
+  }
+  .hero-grid {
+    position: absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(201,169,110,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,169,110,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+  }
+  .hero-content {
+    max-width: 900px;
+    text-align: center;
+    position: relative;
+    z-index:2;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 8px 20px;
+    border-radius: 100px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+  .hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .hero-name em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .hero-tagline {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--silver);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    margin-bottom: 56px;
+    animation: fadeUp 0.8s ease 0.6s both;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    animation: fadeUp 0.8s ease 0.8s both;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg);
+    padding: 14px 36px;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: none;
+    text-decoration: none;
+    transition: all 0.3s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-primary:hover {
+    background: var(--gold2);
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    padding: 14px 36px;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: none;
+    text-decoration: none;
+    transition: all 0.3s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-outline:hover {
+    border-color: var(--gold);
+    background: rgba(201,169,110,0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Floating data points */
+  .float-data {
+    position: absolute;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    animation: floatY 8s ease-in-out infinite;
+  }
+  @keyframes floatY {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .float-data.d1 { top:25%; left:8%; animation-delay: 0s; }
+  .float-data.d2 { top:40%; right:6%; animation-delay: 2s; }
+  .float-data.d3 { bottom:30%; left:12%; animation-delay: 4s; }
+  .float-data.d4 { bottom:20%; right:10%; animation-delay: 1s; }
+
+  /* Scroll indicator */
+  .scroll-ind {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeUp 0.8s ease 1.2s both;
+  }
+  .scroll-ind span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollAnim 2s ease infinite;
+  }
+  @keyframes scrollAnim {
+    0% { transform: scaleY(0); transform-origin: top; opacity:1; }
+    50% { transform: scaleY(1); transform-origin: top; opacity:1; }
+    51% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; opacity:0; }
+  }
+
+  /* Section base */
+  section { padding: 120px 60px; max-width: 1200px; margin: 0 auto; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::before {
+    content:'';
+    width: 24px; height: 1px;
+    background: var(--gold);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 60px;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  /* About */
+  #about { padding-top: 100px; }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .about-bio {
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: rgba(232,228,221,0.7);
+    margin-bottom: 40px;
+  }
+  .about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .stat-card {
+    background: var(--surface);
+    padding: 28px;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .skills-col { }
+  .skill-category {
+    margin-bottom: 36px;
+  }
+  .skill-cat-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-tag {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--silver);
+    transition: all 0.3s;
+    background: rgba(201,169,110,0.02);
+  }
+  .skill-tag:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,169,110,0.06);
+    transform: translateY(-2px);
+  }
+
+  /* Projects */
+  #projects { padding-top: 60px; }
+  .projects-grid {
+    display: grid;
+    gap: 2px;
+  }
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.4s, transform 0.4s;
+    cursor: none;
+  }
+  .project-card:hover {
+    border-color: rgba(201,169,110,0.4);
+    transform: translateY(-4px);
+  }
+  .project-card::before {
+    content:'';
+    position: absolute;
+    inset:0;
+    background: linear-gradient(135deg, rgba(201,169,110,0.03) 0%, transparent 60%);
+    opacity:0;
+    transition: opacity 0.4s;
+  }
+  .project-card:hover::before { opacity:1; }
+
+  .project-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 420px;
+  }
+  .project-inner.reverse { direction: rtl; }
+  .project-inner.reverse > * { direction: ltr; }
+
+  .project-img {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  .project-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    transition: transform 0.6s ease, filter 0.4s ease;
+    filter: brightness(0.75) saturate(0.85);
+  }
+  .project-card:hover .project-img img {
+    transform: scale(1.04);
+    filter: brightness(0.9) saturate(1);
+  }
+  .project-img-overlay {
+    position: absolute;
+    inset:0;
+    background: linear-gradient(to right, transparent 60%, var(--surface) 100%);
+  }
+  .project-inner.reverse .project-img-overlay {
+    background: linear-gradient(to left, transparent 60%, var(--surface) 100%);
+  }
+  .project-number {
+    position: absolute;
+    top: 20px; left: 20px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 5rem;
+    font-weight: 300;
+    color: rgba(201,169,110,0.12);
+    line-height: 1;
+    z-index:2;
+  }
+
+  .project-info {
+    padding: 50px 50px 50px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .project-inner.reverse .project-info {
+    padding: 50px 40px 50px 50px;
+  }
+  .project-stack {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .stack-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    background: rgba(79,124,255,0.1);
+    border: 1px solid rgba(79,124,255,0.2);
+    color: #7fa8ff;
+    border-radius: 100px;
+  }
+  .project-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .project-desc {
+    font-size: 0.875rem;
+    line-height: 1.8;
+    color: rgba(232,228,221,0.6);
+    margin-bottom: 28px;
+  }
+  .project-highlights {
+    list-style: none;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .project-highlights li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: rgba(232,228,221,0.7);
+    line-height: 1.6;
+  }
+  .project-highlights li::before {
+    content:'◆';
+    color: var(--gold);
+    font-size: 0.4rem;
+    margin-top: 6px;
+    flex-shrink:0;
+  }
+  .project-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    transition: all 0.3s;
+    width: fit-content;
+  }
+  .project-link:hover {
+    border-color: var(--gold);
+    gap: 14px;
+  }
+
+  /* Dashboard preview placeholder */
+  .dash-preview {
+    width: 100%; height: 100%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Experience */
+  #experience { padding-top: 60px; }
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+  .timeline::before {
+    content:'';
+    position: absolute;
+    left: 0; top:0; bottom:0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 56px;
+    padding-left: 30px;
+  }
+  .timeline-item::before {
+    content:'';
+    position: absolute;
+    left: -34px; top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(201,169,110,0.15);
+  }
+  .tl-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .tl-role {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    margin-bottom: 4px;
+  }
+  .tl-company {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+  .tl-desc {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: rgba(232,228,221,0.65);
+  }
+  .tl-bullets {
+    list-style: none;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tl-bullets li {
+    font-size: 0.82rem;
+    color: rgba(232,228,221,0.65);
+    line-height: 1.7;
+    display: flex;
+    gap: 10px;
+  }
+  .tl-bullets li::before { content:'—'; color: var(--gold); flex-shrink:0; }
+
+  /* Education */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    margin-top: 40px;
+  }
+  .edu-card {
+    background: var(--surface);
+    padding: 36px;
+    border: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .edu-card:hover { border-color: var(--border); }
+  .edu-grade {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    font-weight: 300;
+    margin-bottom: 8px;
+  }
+  .edu-level {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  .edu-school { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+  .edu-year {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Contact */
+  #contact {
+    padding: 120px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .contact-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .contact-left {}
+  .contact-left p {
+    font-size: 0.9rem;
+    line-height: 1.9;
+    color: rgba(232,228,221,0.6);
+    margin-bottom: 40px;
+  }
+  .social-links { display: flex; flex-direction: column; gap: 16px; }
+  .social-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: var(--silver);
+    font-size: 0.85rem;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .social-link:hover {
+    color: var(--gold);
+    border-color: rgba(201,169,110,0.4);
+    background: rgba(201,169,110,0.04);
+    transform: translateX(6px);
+  }
+  .social-icon {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--gold);
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 18px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.3s;
+    resize: vertical;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: rgba(201,169,110,0.5);
+  }
+  .form-group textarea { min-height: 120px; }
+  .form-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: all 0.3s;
+    margin-top: 8px;
+  }
+  .form-submit:hover {
+    background: var(--gold2);
+    transform: translateY(-2px);
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(24px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* Marquee */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    background: var(--surface);
+    margin: 0 -60px;
+  }
+  .marquee-inner {
+    display: flex;
+    gap: 60px;
+    animation: marquee 25s linear infinite;
+    width: max-content;
+  }
+  .marquee-item {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .marquee-item::after { content:'◆'; font-size: 0.4rem; color: var(--gold); font-style: normal; }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Dashboard preview SVG styles */
+  .preview-svg { width:100%; height:100%; min-height: 300px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { display: none; }
+    #hero { padding: 0 24px; }
+    section { padding: 80px 24px; }
+    .about-grid,
+    .project-inner,
+    .contact-wrap { grid-template-columns: 1fr; }
+    .project-inner.reverse { direction: ltr; }
+    .project-img { min-height: 240px; }
+    .project-img-overlay { background: linear-gradient(to top, var(--surface) 0%, transparent 60%) !important; }
+    .edu-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 12px; text-align:center; }
+    .float-data { display: none; }
+    #contact { padding: 80px 24px; }
+  }
+
+  /* Glowing orb */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    opacity: 0.12;
+    animation: orbFloat 12s ease-in-out infinite;
+  }
+  @keyframes orbFloat {
+    0%,100% { transform: translate(0,0); }
+    33% { transform: translate(30px, -20px); }
+    66% { transform: translate(-20px, 15px); }
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-name">Aanya Mehrotra</div>
+  <div class="loader-bar"></div>
+  <div class="mono" style="font-size:0.6rem;letter-spacing:0.3em;color:var(--muted);margin-top:8px">LOADING PORTFOLIO</div>
+</div>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">AM</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="padding-top:0; max-width:none;">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="orb" style="width:500px;height:500px;background:var(--accent);left:-100px;top:10%;"></div>
+  <div class="orb" style="width:400px;height:400px;background:var(--accent2);right:-80px;bottom:10%;animation-delay:4s;"></div>
+  <div class="orb" style="width:300px;height:300px;background:var(--gold);left:40%;top:60%;animation-delay:8s;opacity:0.06;"></div>
+
+  <div class="float-data d1">
+    <div>RPS: 0.847</div>
+    <div style="color:var(--gold);margin-top:4px">◆ HIGH RISK</div>
+  </div>
+  <div class="float-data d2">
+    <div>41K+ records</div>
+    <div style="color:var(--accent);margin-top:4px">PIPELINE ACTIVE</div>
+  </div>
+  <div class="float-data d3">
+    <div>Accuracy: 87%</div>
+    <div style="color:var(--muted);margin-top:4px">LOG. REGRESSION</div>
+  </div>
+  <div class="float-data d4">
+    <div>148K+ loans</div>
+    <div style="color:var(--gold);margin-top:4px">◆ ANALYZED</div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Data Analyst &amp; Developer</div>
+    <h1 class="hero-name">
+      Aanya<br><em>Mehrotra</em>
+    </h1>
+    <p class="hero-tagline">Building data-driven digital experiences</p>
+    <div class="hero-ctas">
+      <a href="#projects" class="btn-primary">View Work</a>
+      <a href="#contact" class="btn-outline">Get in Touch</a>
+    </div>
+  </div>
+
+  <div class="scroll-ind">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap" style="max-width:none;">
+  <div class="marquee-inner">
+    <span class="marquee-item">Python</span>
+    <span class="marquee-item">Tableau</span>
+    <span class="marquee-item">Machine Learning</span>
+    <span class="marquee-item">Data Analytics</span>
+    <span class="marquee-item">ETL Pipelines</span>
+    <span class="marquee-item">React</span>
+    <span class="marquee-item">SQL</span>
+    <span class="marquee-item">Logistic Regression</span>
+    <span class="marquee-item">Full-Stack Development</span>
+    <span class="marquee-item">Risk Analysis</span>
+    <span class="marquee-item">Python</span>
+    <span class="marquee-item">Tableau</span>
+    <span class="marquee-item">Machine Learning</span>
+    <span class="marquee-item">Data Analytics</span>
+    <span class="marquee-item">ETL Pipelines</span>
+    <span class="marquee-item">React</span>
+    <span class="marquee-item">SQL</span>
+    <span class="marquee-item">Logistic Regression</span>
+    <span class="marquee-item">Full-Stack Development</span>
+    <span class="marquee-item">Risk Analysis</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label reveal">About</div>
+  <div class="about-grid">
+    <div>
+      <h2 class="section-title reveal">Data meets<br><em>precision</em></h2>
+      <p class="about-bio reveal reveal-delay-1">
+        I'm a data-driven developer and analytics enthusiast with hands-on experience building end-to-end data pipelines, interactive dashboards, and machine learning models. I turn complex datasets into decision-ready insights — across domains like planetary defense and financial risk.
+      </p>
+      <p class="about-bio reveal reveal-delay-2" style="margin-top:-20px">
+        Skilled in Python, statistical analysis, and visualization tools like Tableau, I combine technical development with analytical thinking to deliver outcomes that matter.
+      </p>
+      <div class="about-stats reveal reveal-delay-3">
+        <div class="stat-card">
+          <div class="stat-num">41K+</div>
+          <div class="stat-label">Asteroid records analyzed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">87%</div>
+          <div class="stat-label">ML model accuracy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">148K+</div>
+          <div class="stat-label">Loan records processed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Production SaaS shipped</div>
+        </div>
+      </div>
+    </div>
+    <div class="skills-col">
+      <h3 class="section-title reveal" style="font-size:2rem;margin-bottom:36px">Technical <em>Skills</em></h3>
+      <div class="skill-category reveal reveal-delay-1">
+        <div class="skill-cat-title">Data & Analytics</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">Pandas</span>
+          <span class="skill-tag">NumPy</span>
+          <span class="skill-tag">Tableau</span>
+          <span class="skill-tag">SQL</span>
+          <span class="skill-tag">Excel</span>
+          <span class="skill-tag">Matplotlib</span>
+        </div>
+      </div>
+      <div class="skill-category reveal reveal-delay-2">
+        <div class="skill-cat-title">Machine Learning</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Logistic Regression</span>
+          <span class="skill-tag">Scikit-learn</span>
+          <span class="skill-tag">LangChain</span>
+          <span class="skill-tag">LangGraph</span>
+          <span class="skill-tag">Hugging Face</span>
+          <span class="skill-tag">OpenAI API</span>
+        </div>
+      </div>
+      <div class="skill-category reveal reveal-delay-3">
+        <div class="skill-cat-title">Development</div>
+        <div class="skill-tags">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Next.js</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">PostgreSQL</span>
+          <span class="skill-tag">MongoDB</span>
+          <span class="skill-tag">Tailwind</span>
+        </div>
+      </div>
+      <div class="skill-category reveal reveal-delay-4">
+        <div class="skill-cat-title">Tools & Other</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">Figma</span>
+          <span class="skill-tag">Prisma ORM</span>
+          <span class="skill-tag">GitHub Actions</span>
+          <span class="skill-tag">REST APIs</span>
+          <span class="skill-tag">UI/UX</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" style="max-width:none; padding-left:0;padding-right:0;">
+  <div style="max-width:1200px;margin:0 auto;padding:0 60px 60px;">
+    <div class="section-label reveal">Featured Work</div>
+    <h2 class="section-title reveal">Selected <em>Projects</em></h2>
+  </div>
+
+  <div class="projects-grid">
+
+    <!-- Project 1: Asteroid -->
+    <div class="project-card reveal">
+      <div class="project-inner">
+        <div class="project-img">
+          <div class="project-number">01</div>
+          <!-- Inline asteroid dashboard preview -->
+          <svg class="preview-svg" viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="bg1" cx="50%" cy="50%" r="70%">
+                <stop offset="0%" stop-color="#0f1020"/>
+                <stop offset="100%" stop-color="#050508"/>
+              </radialGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <rect width="600" height="420" fill="url(#bg1)"/>
+            <!-- Grid lines -->
+            <line x1="0" y1="60" x2="600" y2="60" stroke="rgba(201,169,110,0.08)" stroke-width="1"/>
+            <line x1="0" y1="120" x2="600" y2="120" stroke="rgba(201,169,110,0.08)" stroke-width="1"/>
+            <line x1="0" y1="180" x2="600" y2="180" stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+            <line x1="0" y1="240" x2="600" y2="240" stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+            <line x1="0" y1="300" x2="600" y2="300" stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+            <line x1="0" y1="360" x2="600" y2="360" stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+            <!-- Title -->
+            <text x="300" y="32" text-anchor="middle" fill="#c9a96e" font-size="12" font-family="Georgia,serif" letter-spacing="2">ASTEROID RISK ANALYSIS</text>
+            <!-- KPI Cards -->
+            <rect x="20" y="50" width="130" height="50" fill="rgba(201,169,110,0.06)" rx="2" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+            <text x="85" y="68" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="7" font-family="monospace">AVG ECCENTRICITY</text>
+            <text x="85" y="88" text-anchor="middle" fill="#c9a96e" font-size="18" font-family="Georgia,serif">0.4343</text>
+            <rect x="160" y="50" width="130" height="50" fill="rgba(79,124,255,0.05)" rx="2" stroke="rgba(79,124,255,0.15)" stroke-width="1"/>
+            <text x="225" y="68" text-anchor="middle" fill="rgba(79,124,255,0.6)" font-size="7" font-family="monospace">AVG ORBITAL PERIOD</text>
+            <text x="225" y="88" text-anchor="middle" fill="#7fa8ff" font-size="18" font-family="Georgia,serif">2.656</text>
+            <rect x="300" y="50" width="130" height="50" fill="rgba(201,169,110,0.06)" rx="2" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+            <text x="365" y="68" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="7" font-family="monospace">MAX ECCENTRICITY</text>
+            <text x="365" y="88" text-anchor="middle" fill="#c9a96e" font-size="18" font-family="Georgia,serif">0.9964</text>
+            <rect x="440" y="50" width="130" height="50" fill="rgba(124,95,255,0.05)" rx="2" stroke="rgba(124,95,255,0.15)" stroke-width="1"/>
+            <text x="505" y="68" text-anchor="middle" fill="rgba(124,95,255,0.5)" font-size="7" font-family="monospace">AVG INCLINATION</text>
+            <text x="505" y="88" text-anchor="middle" fill="#a67fff" font-size="18" font-family="Georgia,serif">11.84°</text>
+            <!-- Bubble chart -->
+            <text x="30" y="145" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">ORBIT SHAPE DISTRIBUTION</text>
+            <circle cx="120" cy="230" r="50" fill="rgba(79,124,255,0.15)" stroke="rgba(79,124,255,0.3)" stroke-width="1" filter="url(#glow)"/>
+            <circle cx="220" cy="200" r="30" fill="rgba(124,95,255,0.12)" stroke="rgba(124,95,255,0.25)" stroke-width="1"/>
+            <circle cx="80" cy="270" r="15" fill="rgba(201,169,110,0.15)" stroke="rgba(201,169,110,0.3)" stroke-width="1"/>
+            <circle cx="170" cy="260" r="8" fill="rgba(201,169,110,0.2)" stroke="rgba(201,169,110,0.4)" stroke-width="1"/>
+            <!-- Discoveries bar chart -->
+            <text x="350" y="145" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">DISCOVERIES OVER TIME</text>
+            <rect x="340" y="310" width="10" height="30" fill="rgba(79,124,255,0.5)" rx="1"/>
+            <rect x="355" y="290" width="10" height="50" fill="rgba(79,124,255,0.5)" rx="1"/>
+            <rect x="370" y="270" width="10" height="70" fill="rgba(79,124,255,0.6)" rx="1"/>
+            <rect x="385" y="255" width="10" height="85" fill="rgba(79,124,255,0.65)" rx="1"/>
+            <rect x="400" y="240" width="10" height="100" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="415" y="220" width="10" height="120" fill="rgba(201,169,110,0.5)" rx="1"/>
+            <rect x="430" y="200" width="10" height="140" fill="rgba(201,169,110,0.6)" rx="1"/>
+            <rect x="445" y="235" width="10" height="105" fill="rgba(79,124,255,0.5)" rx="1"/>
+            <rect x="460" y="250" width="10" height="90" fill="rgba(79,124,255,0.45)" rx="1"/>
+            <rect x="475" y="285" width="10" height="55" fill="rgba(79,124,255,0.3)" rx="1"/>
+            <rect x="490" y="305" width="10" height="35" fill="rgba(79,124,255,0.25)" rx="1"/>
+            <!-- X-axis labels -->
+            <text x="340" y="360" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">1940</text>
+            <text x="390" y="360" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">1970</text>
+            <text x="445" y="360" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">2000</text>
+            <text x="490" y="360" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">2020</text>
+            <!-- Hazard treemap -->
+            <text x="30" y="320" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">HAZARD DISTRIBUTION</text>
+            <rect x="30" y="330" width="90" height="50" fill="rgba(220,60,60,0.25)" stroke="rgba(220,60,60,0.3)" stroke-width="1"/>
+            <text x="75" y="360" text-anchor="middle" fill="rgba(220,100,100,0.8)" font-size="6" font-family="monospace">SMALL (NON-PHO)</text>
+            <rect x="122" y="330" width="50" height="50" fill="rgba(201,169,110,0.2)" stroke="rgba(201,169,110,0.3)" stroke-width="1"/>
+            <text x="147" y="360" text-anchor="middle" fill="rgba(201,169,110,0.8)" font-size="6" font-family="monospace">MEDIUM</text>
+            <rect x="174" y="330" width="45" height="50" fill="rgba(79,124,255,0.15)" stroke="rgba(79,124,255,0.25)" stroke-width="1"/>
+            <text x="196" y="360" text-anchor="middle" fill="rgba(79,124,255,0.7)" font-size="6" font-family="monospace">LARGE</text>
+            <!-- Stars bg -->
+            <circle cx="50" cy="190" r="1" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="200" cy="310" r="1" fill="rgba(255,255,255,0.2)"/>
+            <circle cx="280" cy="170" r="1.5" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="320" cy="390" r="1" fill="rgba(255,255,255,0.15)"/>
+            <circle cx="550" cy="130" r="1" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="580" cy="380" r="1.5" fill="rgba(255,255,255,0.2)"/>
+          </svg>
+          <div class="project-img-overlay"></div>
+        </div>
+        <div class="project-info">
+          <div class="project-stack">
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">Tableau</span>
+            <span class="stack-pill">Pandas</span>
+            <span class="stack-pill">Sci-kit Learn</span>
+            <span class="stack-pill">NumPy</span>
+          </div>
+          <h3 class="project-title">Asteroid Risk Analysis &amp; Planetary Defense</h3>
+          <p class="project-desc">An end-to-end analytics pipeline on 41K+ asteroid records to identify high-risk Near-Earth Objects and optimize planetary defense decision-making.</p>
+          <ul class="project-highlights">
+            <li>Built ETL pipeline processing 41,000+ asteroid records with Python (Pandas, NumPy)</li>
+            <li>Developed Risk Prioritization Score (RPS) combining size and proximity metrics</li>
+            <li>Applied logistic regression achieving 87% accuracy in hazard prediction</li>
+            <li>Designed interactive Tableau dashboards for real-time high-priority filtering</li>
+            <li>Delivered actionable early-warning recommendations for resource allocation</li>
+          </ul>
+          <a href="https://github.com/aanyamehrotra" target="_blank" class="project-link">
+            View on GitHub
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project 2: Loan -->
+    <div class="project-card reveal">
+      <div class="project-inner reverse">
+        <div class="project-img">
+          <div class="project-number">02</div>
+          <!-- Inline loan dashboard preview -->
+          <svg class="preview-svg" viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="bg2" cx="50%" cy="30%" r="80%">
+                <stop offset="0%" stop-color="#100c08"/>
+                <stop offset="100%" stop-color="#050508"/>
+              </radialGradient>
+            </defs>
+            <rect width="600" height="420" fill="url(#bg2)"/>
+            <line x1="0" y1="60" x2="600" y2="60" stroke="rgba(201,169,110,0.07)" stroke-width="1"/>
+            <line x1="0" y1="180" x2="600" y2="180" stroke="rgba(201,169,110,0.05)" stroke-width="1"/>
+            <line x1="0" y1="300" x2="600" y2="300" stroke="rgba(201,169,110,0.05)" stroke-width="1"/>
+            <!-- Title -->
+            <text x="300" y="32" text-anchor="middle" fill="#c9a96e" font-size="12" font-family="Georgia,serif" letter-spacing="2">LOAN DEFAULT RISK</text>
+            <!-- KPI Cards -->
+            <rect x="20" y="48" width="120" height="52" fill="rgba(201,169,110,0.07)" rx="2" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+            <text x="80" y="66" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="7" font-family="monospace">TOTAL LOANS</text>
+            <text x="80" y="86" text-anchor="middle" fill="#c9a96e" font-size="15" font-family="Georgia,serif">148K+</text>
+            <rect x="150" y="48" width="120" height="52" fill="rgba(124,95,255,0.05)" rx="2" stroke="rgba(124,95,255,0.15)" stroke-width="1"/>
+            <text x="210" y="66" text-anchor="middle" fill="rgba(124,95,255,0.5)" font-size="7" font-family="monospace">AVG CREDIT SCORE</text>
+            <text x="210" y="86" text-anchor="middle" fill="#a67fff" font-size="15" font-family="Georgia,serif">699.42</text>
+            <rect x="280" y="48" width="120" height="52" fill="rgba(79,124,255,0.05)" rx="2" stroke="rgba(79,124,255,0.15)" stroke-width="1"/>
+            <text x="340" y="66" text-anchor="middle" fill="rgba(79,124,255,0.5)" font-size="7" font-family="monospace">AVG LOAN AMOUNT</text>
+            <text x="340" y="86" text-anchor="middle" fill="#7fa8ff" font-size="14" font-family="Georgia,serif">332K</text>
+            <rect x="410" y="48" width="120" height="52" fill="rgba(201,169,110,0.07)" rx="2" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+            <text x="470" y="66" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="7" font-family="monospace">AVG LTV</text>
+            <text x="470" y="86" text-anchor="middle" fill="#c9a96e" font-size="15" font-family="Georgia,serif">73.29%</text>
+            <!-- Credit score bar chart -->
+            <text x="30" y="130" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">AVG LTV BY AGE GROUP</text>
+            <rect x="30" y="155" width="30" height="55" fill="rgba(201,169,110,0.6)" rx="1"/>
+            <rect x="70" y="175" width="30" height="35" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="110" y="155" width="30" height="55" fill="rgba(201,169,110,0.55)" rx="1"/>
+            <rect x="150" y="160" width="30" height="50" fill="rgba(201,169,110,0.5)" rx="1"/>
+            <rect x="190" y="165" width="30" height="45" fill="rgba(201,169,110,0.45)" rx="1"/>
+            <rect x="230" y="170" width="30" height="40" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="270" y="175" width="30" height="35" fill="rgba(201,169,110,0.35)" rx="1"/>
+            <text x="45" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">&lt;25</text>
+            <text x="85" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">&gt;74</text>
+            <text x="125" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">25-34</text>
+            <text x="165" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">35-44</text>
+            <text x="205" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">45-54</text>
+            <text x="245" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">55-64</text>
+            <text x="285" y="225" text-anchor="middle" fill="rgba(201,169,110,0.5)" font-size="6" font-family="monospace">65-74</text>
+            <!-- Pie chart -->
+            <text x="380" y="130" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">GENDER DISTRIBUTION</text>
+            <circle cx="450" cy="195" r="50" fill="none" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+            <!-- Pie slices using paths -->
+            <path d="M450,195 L450,145 A50,50 0 0,1 495,220 Z" fill="rgba(124,95,255,0.5)"/>
+            <path d="M450,195 L495,220 A50,50 0 0,1 432,244 Z" fill="rgba(201,169,110,0.45)"/>
+            <path d="M450,195 L432,244 A50,50 0 0,1 404,170 Z" fill="rgba(79,124,255,0.45)"/>
+            <path d="M450,195 L404,170 A50,50 0 0,1 450,145 Z" fill="rgba(220,60,60,0.35)"/>
+            <text x="510" y="158" fill="rgba(124,95,255,0.8)" font-size="7" font-family="monospace">MALE 30.6%</text>
+            <text x="510" y="172" fill="rgba(201,169,110,0.8)" font-size="7" font-family="monospace">OTHERS 28.1%</text>
+            <text x="510" y="186" fill="rgba(79,124,255,0.8)" font-size="7" font-family="monospace">JOINT 22.2%</text>
+            <text x="510" y="200" fill="rgba(220,100,100,0.8)" font-size="7" font-family="monospace">FEMALE 19.2%</text>
+            <!-- Regional bar chart -->
+            <text x="30" y="280" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">REGIONAL CREDIT SCORE DISTRIBUTION</text>
+            <rect x="30" y="295" width="12" height="60" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="30" y="355" width="12" height="20" fill="rgba(79,124,255,0.4)" rx="1"/>
+            <rect x="55" y="300" width="12" height="55" fill="rgba(201,169,110,0.45)" rx="1"/>
+            <rect x="55" y="355" width="12" height="20" fill="rgba(79,124,255,0.35)" rx="1"/>
+            <rect x="80" y="295" width="12" height="60" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="80" y="355" width="12" height="20" fill="rgba(124,95,255,0.3)" rx="1"/>
+            <rect x="105" y="298" width="12" height="57" fill="rgba(201,169,110,0.35)" rx="1"/>
+            <rect x="105" y="355" width="12" height="20" fill="rgba(79,124,255,0.3)" rx="1"/>
+            <rect x="130" y="295" width="12" height="60" fill="rgba(201,169,110,0.45)" rx="1"/>
+            <rect x="130" y="355" width="12" height="20" fill="rgba(124,95,255,0.35)" rx="1"/>
+            <rect x="155" y="300" width="12" height="55" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="155" y="355" width="12" height="20" fill="rgba(79,124,255,0.3)" rx="1"/>
+            <rect x="180" y="295" width="12" height="60" fill="rgba(201,169,110,0.5)" rx="1"/>
+            <rect x="180" y="355" width="12" height="20" fill="rgba(124,95,255,0.4)" rx="1"/>
+            <!-- Credit score axis labels -->
+            <text x="36" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">500-549</text>
+            <text x="61" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">550-599</text>
+            <text x="86" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">600-649</text>
+            <text x="111" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">650-699</text>
+            <text x="136" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">700-749</text>
+            <text x="161" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">750-799</text>
+            <text x="186" y="392" text-anchor="middle" fill="rgba(201,169,110,0.4)" font-size="5.5" font-family="monospace">800-849</text>
+            <!-- Avg Income bars -->
+            <text x="350" y="280" fill="rgba(232,228,221,0.5)" font-size="8" font-family="monospace">AVG INCOME BY AGE</text>
+            <rect x="350" y="295" width="80" height="10" fill="rgba(201,169,110,0.4)" rx="1"/>
+            <rect x="350" y="312" width="75" height="10" fill="rgba(201,169,110,0.35)" rx="1"/>
+            <rect x="350" y="329" width="95" height="10" fill="rgba(201,169,110,0.55)" rx="1"/>
+            <rect x="350" y="346" width="100" height="10" fill="rgba(201,169,110,0.6)" rx="1"/>
+            <rect x="350" y="363" width="98" height="10" fill="rgba(201,169,110,0.58)" rx="1"/>
+            <rect x="350" y="380" width="88" height="10" fill="rgba(201,169,110,0.48)" rx="1"/>
+            <text x="340" y="304" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">&lt;25</text>
+            <text x="340" y="321" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">&gt;74</text>
+            <text x="340" y="338" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">25-34</text>
+            <text x="340" y="355" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">35-44</text>
+            <text x="340" y="372" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">45-54</text>
+            <text x="340" y="389" text-anchor="end" fill="rgba(201,169,110,0.4)" font-size="6" font-family="monospace">55-64</text>
+          </svg>
+          <div class="project-img-overlay" style="background: linear-gradient(to left, transparent 60%, var(--surface) 100%);"></div>
+        </div>
+        <div class="project-info" style="padding: 50px 40px 50px 50px;">
+          <div class="project-stack">
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">Pandas</span>
+            <span class="stack-pill">Tableau</span>
+            <span class="stack-pill">Excel</span>
+            <span class="stack-pill">SQL</span>
+          </div>
+          <h3 class="project-title">Loan Default Risk Analysis Dashboard</h3>
+          <p class="project-desc">A comprehensive financial analytics solution analyzing 148K+ loan records to identify default risk patterns and deliver data-driven lending insights.</p>
+          <ul class="project-highlights">
+            <li>Analyzed 148,000+ loan records to uncover key drivers of default risk</li>
+            <li>Performed data preprocessing: median/mode imputation, standardization, code mapping</li>
+            <li>Built interactive dashboard tracking default patterns across credit score, LTV, income</li>
+            <li>Identified critical risk factors: high LTV, low credit score (&lt;650), low income</li>
+            <li>Delivered insights supporting better lending decisions and risk segmentation</li>
+          </ul>
+          <a href="https://github.com/aanyamehrotra" target="_blank" class="project-link">
+            View on GitHub
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-label reveal">Background</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+    <div>
+      <h2 class="section-title reveal">Experience &amp; <em>Education</em></h2>
+      <div class="timeline">
+        <div class="timeline-item reveal">
+          <div class="tl-date">May 2025 — July 2025</div>
+          <div class="tl-role">Software Developer Intern</div>
+          <div class="tl-company">Plugseal Innovations · Remote</div>
+          <ul class="tl-bullets">
+            <li>Designed and shipped 3 production full-stack products: Dentaire, Groway, ScoreQuest</li>
+            <li>Built with React, Next.js, Node.js, PostgreSQL — responsive UIs + REST APIs + auth flows</li>
+            <li>Owned end-to-end API design covering auth, form handling, and CRUD operations</li>
+            <li>Worked within production-grade standards: modular architecture, Git workflows, code review</li>
+          </ul>
+        </div>
+        <div class="timeline-item reveal">
+          <div class="tl-date">Ongoing</div>
+          <div class="tl-role">Co-Founder</div>
+          <div class="tl-company">Infeed Media · Freelance</div>
+          <ul class="tl-bullets">
+            <li>Founding team member of a freelance dev and marketing agency</li>
+            <li>Managed client delivery across tech and media verticals</li>
+            <li>Ran performance marketing campaigns for MakeMyTrip, RBA, and DTC brands</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2 class="section-title reveal" style="opacity:0;pointer-events:none;">&nbsp;</h2>
+      <div style="margin-bottom:36px;" class="reveal">
+        <div class="section-label" style="margin-bottom:24px;">Education</div>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <div class="edu-grade">95.25%</div>
+            <div class="edu-level">Class XII (Intermediate)</div>
+            <div class="edu-school">The Chintels School</div>
+            <div class="edu-year">2023 — 2024</div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-grade">96.0%</div>
+            <div class="edu-level">Class X (Matriculation)</div>
+            <div class="edu-school">The Chintels School</div>
+            <div class="edu-year">2021 — 2022</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="background:var(--surface);border:1px solid var(--border);padding:32px;margin-top:24px;">
+        <div class="section-label" style="margin-bottom:20px;">Currently Pursuing</div>
+        <div class="tl-role" style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;margin-bottom:8px;">B.Tech — Newton School of Technology</div>
+        <div class="tl-company">Rishihood University · 2024 — Present</div>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+          <span class="skill-tag">Data Structures</span>
+          <span class="skill-tag">Machine Learning</span>
+          <span class="skill-tag">Full-Stack Dev</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<div id="contact" style="padding:0;">
+  <div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:120px 60px;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div class="section-label reveal">Contact</div>
+      <div class="contact-wrap">
+        <div class="contact-left">
+          <h2 class="section-title reveal" style="margin-bottom:24px;">Let's work<br><em>together</em></h2>
+          <p class="reveal reveal-delay-1">Open to data analytics roles, freelance projects, and collaboration opportunities. I bring a unique mix of full-stack development and deep data analysis.</p>
+          <div class="social-links reveal reveal-delay-2">
+            <a href="https://github.com/aanyamehrotra" target="_blank" class="social-link">
+              <div class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:2px;">GITHUB</div>
+                <div style="font-size:0.85rem;">aanyamehrotra</div>
+              </div>
+            </a>
+            <a href="https://www.linkedin.com/in/aanya-mehrotra-858567331/" target="_blank" class="social-link">
+              <div class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:2px;">LINKEDIN</div>
+                <div style="font-size:0.85rem;">Aanya Mehrotra</div>
+              </div>
+            </a>
+            <a href="mailto:aanya.mehrotra2024@nst.rishihood.edu.in" class="social-link">
+              <div class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:2px;">EMAIL</div>
+                <div style="font-size:0.8rem;">aanya.mehrotra2024@nst.rishihood.edu.in</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" placeholder="Jane Smith" />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" placeholder="jane@company.com" />
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" placeholder="Project Inquiry" />
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea placeholder="Tell me about your project or opportunity..."></textarea>
+          </div>
+          <button class="form-submit">Send Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Aanya Mehrotra — All rights reserved</span>
+  <span class="mono" style="color:var(--gold);letter-spacing:0.2em;">BUILT WITH PRECISION</span>
+  <span>Data Analyst &amp; Developer</span>
+</footer>
+
+<script>
+  // Loader
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+    }, 2000);
+  });
+
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, .skill-tag').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '20px';
+      cursor.style.height = '20px';
+      ring.style.width = '54px';
+      ring.style.height = '54px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px';
+      cursor.style.height = '10px';
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+    });
+  });
+
+  // Sticky navbar
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Form submit
+  document.querySelector('.form-submit').addEventListener('click', function() {
+    this.textContent = 'Message Sent ✓';
+    this.style.background = '#2a4a2a';
+    this.style.color = '#6aaa6a';
+    setTimeout(() => {
+      this.textContent = 'Send Message';
+      this.style.background = '';
+      this.style.color = '';
+    }, 3000);
+  });
+</script>
+</body>
+</html>
